@@ -1,8 +1,8 @@
-import { build as viteBuild, InlineConfig } from 'vite'
-import { CLIENT_ENTRY_PATH, SERVER_ENTRY_PATH } from './constants'
-import pluginReact from '@vitejs/plugin-react'
-import { join } from 'path'
-import fs from 'fs-extra'
+import { build as viteBuild, InlineConfig } from 'vite';
+import { CLIENT_ENTRY_PATH, SERVER_ENTRY_PATH } from './constants';
+import pluginReact from '@vitejs/plugin-react';
+import { join } from 'path';
+import fs from 'fs-extra';
 
 export async function bundle(root: string) {
   const resolveViteConfig = (isServer: boolean): InlineConfig => ({
@@ -20,29 +20,29 @@ export async function bundle(root: string) {
         },
       },
     },
-  })
+  });
 
-  console.log(`Building client + server bundles...`)
+  console.log(`Building client + server bundles...`);
   try {
     const [clientBundle, serverBundle] = await Promise.all([
       // client build
       viteBuild(resolveViteConfig(false)),
       // server build
       viteBuild(resolveViteConfig(true)),
-    ])
-    return [clientBundle, serverBundle] as [any, any]
+    ]);
+    return [clientBundle, serverBundle] as [any, any];
   } catch (e) {
-    console.log(e)
-    return []
+    console.log(e);
+    return [];
   }
 }
 
 export async function renderPage(render: () => string, root: string, clientBundle: any) {
   const clientChunk = clientBundle.output.find(
     (chunk: { type: string; isEntry: any }) => chunk.type === 'chunk' && chunk.isEntry,
-  )
-  console.log(`Rendering page in server side...`)
-  const appHtml = render()
+  );
+  console.log(`Rendering page in server side...`);
+  const appHtml = render();
   const html = `
 <!DOCTYPE html>
 <html>
@@ -56,15 +56,15 @@ export async function renderPage(render: () => string, root: string, clientBundl
     <div id="root">${appHtml}</div>
     <script type="module" src="/${clientChunk?.fileName}"></script>
   </body>
-</html>`.trim()
-  await fs.ensureDir(join(root, 'build'))
-  await fs.writeFile(join(root, 'build/index.html'), html)
-  await fs.remove(join(root, '.temp'))
+</html>`.trim();
+  await fs.ensureDir(join(root, 'build'));
+  await fs.writeFile(join(root, 'build/index.html'), html);
+  await fs.remove(join(root, '.temp'));
 }
 
 export async function build(root: string = process.cwd()) {
-  const [clientBundle, serverBundle] = await bundle(root)
-  const serverEntryPath = join(root, '.temp', 'ssr-entry.js')
-  const { render } = await import(serverEntryPath)
-  await renderPage(render, root, clientBundle)
+  const [clientBundle] = await bundle(root);
+  const serverEntryPath = join(root, '.temp', 'ssr-entry.js');
+  const { render } = await import(serverEntryPath);
+  await renderPage(render, root, clientBundle);
 }
