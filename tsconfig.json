@@ -10,6 +10,10 @@
     "skipLibCheck": true,
     "outDir": "dist",
     "jsx": "react-jsx",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"] // 配置 src 目录的别名为 "@"
+    }
   },
   "include": ["src"]
 }
